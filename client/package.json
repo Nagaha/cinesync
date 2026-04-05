@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npx vite",
     "build": "npx tsc && npx vite build",
+    "start": "npx serve -s dist -l 80",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "npx vite preview"
   },
