@@ -9,7 +9,7 @@ services:
     region: oregon
     rootDir: server
     buildCommand: npm run build
-    startCommand: npm start
+    startCommand: cd server && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
