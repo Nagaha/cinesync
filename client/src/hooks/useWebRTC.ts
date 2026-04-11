@@ -29,6 +29,7 @@ export function useWebRTC({
   const [streamReady, setStreamReady] = useState(false);
 
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const sentOffers = useRef<Set<string>>(new Set());
   const pendingOffers = useRef<Map<string, RTCSessionDescriptionInit>>(new Map());
 
   const initializeLocalStream = useCallback(async () => {
@@ -120,26 +121,34 @@ export function useWebRTC({
 
   const connectToPeer = useCallback(async (peerId: string, username: string) => {
     if (peerConnections.current.has(peerId)) return;
+    if (sentOffers.current.has(peerId)) return;
 
-    console.log('Creating peer connection for:', peerId);
+    console.log('[WebRTC] Creating peer connection for:', peerId);
     const pc = createPeerConnection(peerId, username);
     peerConnections.current.set(peerId, pc);
+    sentOffers.current.add(peerId);
 
     try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      console.log('[WebRTC] Sending offer to:', peerId);
       onOffer(peerId, offer);
     } catch (error) {
-      console.error('Error creating offer:', error);
+      console.error('[WebRTC] Error creating offer:', error);
     }
   }, [createPeerConnection, onOffer]);
 
   const handleOffer = useCallback(async (from: string, offer: RTCSessionDescriptionInit) => {
+    console.log('[WebRTC] Received offer from:', from);
     if (!currentUserId) return;
 
     let stream = localStream;
     if (!stream) {
-      stream = await initializeLocalStream();
+      try {
+        stream = await initializeLocalStream();
+      } catch (e) {
+        console.log('[WebRTC] Could not get local stream, proceeding without it');
+      }
     }
 
     let pc = peerConnections.current.get(from);
@@ -148,24 +157,44 @@ export function useWebRTC({
       peerConnections.current.set(from, pc);
     }
 
+    const state = pc.signalingState;
+    console.log('[WebRTC] Offer received, current state:', state);
+    
+    if (state !== 'stable') {
+      console.log('[WebRTC] Wrong state for offer:', state);
+      return;
+    }
+
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      console.log('[WebRTC] Remote description set, creating answer');
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+      console.log('[WebRTC] Sending answer to:', from);
       onAnswer(from, answer);
     } catch (error) {
-      console.error('Error handling offer:', error);
+      console.error('[WebRTC] Error handling offer:', error);
     }
   }, [currentUserId, localStream, initializeLocalStream, createPeerConnection, participants, onAnswer]);
 
   const handleAnswer = useCallback(async (from: string, answer: RTCSessionDescriptionInit) => {
+    console.log('[WebRTC] Received answer from:', from);
     const pc = peerConnections.current.get(from);
-    if (pc) {
-      try {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      } catch (error) {
-        console.error('Error handling answer:', error);
-      }
+    if (!pc) {
+      console.log('[WebRTC] No peer connection found for:', from);
+      return;
+    }
+    const state = pc.signalingState;
+    console.log('[WebRTC] Peer connection state before answer:', state);
+    if (state !== 'have-local-offer') {
+      console.log('[WebRTC] Skipping answer, wrong state:', state);
+      return;
+    }
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      console.log('[WebRTC] Answer set successfully');
+    } catch (error) {
+      console.error('[WebRTC] Error handling answer:', error);
     }
   }, []);
 
@@ -233,7 +262,9 @@ export function useWebRTC({
 
     participants.forEach((p) => {
       if (p.id !== currentUserId && !peerConnections.current.has(p.id)) {
-        connectToPeer(p.id, p.username);
+        if (currentUserId && p.id > currentUserId) {
+          connectToPeer(p.id, p.username);
+        }
       }
     });
   }, [participants, currentUserId, connectToPeer]);

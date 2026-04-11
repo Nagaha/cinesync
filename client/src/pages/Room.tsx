@@ -115,16 +115,19 @@ export default function Room() {
   useEffect(() => {
     if (!socket || !currentUserId) return;
     socket.on('offer', (data: { from: string; to: string; offer: RTCSessionDescriptionInit }) => {
+      console.log('[Room] Received offer from:', data.from, 'to:', data.to);
       if (data.to === currentUserId) {
         handleOffer(data.from, data.offer);
       }
     });
     socket.on('answer', (data: { from: string; to: string; answer: RTCSessionDescriptionInit }) => {
+      console.log('[Room] Received answer from:', data.from, 'to:', data.to);
       if (data.to === currentUserId) {
         handleAnswer(data.from, data.answer);
       }
     });
     socket.on('ice-candidate', (data: { from: string; to: string; candidate: RTCIceCandidateInit }) => {
+      console.log('[Room] Received ICE from:', data.from, 'to:', data.to);
       if (data.to === currentUserId) {
         handleIceCandidate(data.from, data.candidate);
       }

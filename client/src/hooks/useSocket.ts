@@ -98,18 +98,21 @@ export function useSocket({
 
   const emitOffer = useCallback((to: string, offer: RTCSessionDescriptionInit) => {
     if (socketRef.current) {
+      console.log('[Socket] Emitting offer to:', to);
       socketRef.current.emit('offer', { to, offer });
     }
   }, []);
 
   const emitAnswer = useCallback((to: string, answer: RTCSessionDescriptionInit) => {
     if (socketRef.current) {
+      console.log('[Socket] Emitting answer to:', to);
       socketRef.current.emit('answer', { to, answer });
     }
   }, []);
 
   const emitIceCandidate = useCallback((to: string, candidate: RTCIceCandidateInit) => {
     if (socketRef.current) {
+      console.log('[Socket] Emitting ICE to:', to);
       socketRef.current.emit('ice-candidate', { to, candidate });
     }
   }, []);
