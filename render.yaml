@@ -30,6 +30,8 @@ services:
         name: Cache-Control
         value: public, max-age=0, must-revalidate
     routes:
+      - path: /*
+        service: cinesync-client
       - path: /api
         service: cinesync-server
       - path: /socket.io
