@@ -46,7 +46,7 @@ export default function Room() {
   } = useSocket({
     roomId: roomId || null,
     username,
-    onRoomJoined: useCallback((data) => {
+    onRoomJoined: useCallback((data: { room: Room; participants: Participant[]; messages: ChatMessage[] }) => {
       setRoom(data.room);
       setParticipants(data.participants);
       setMessages(data.messages);
@@ -54,30 +54,30 @@ export default function Room() {
         setVideoState(data.room.videoState);
       }
     }, []),
-    onUserJoined: useCallback((participant) => {
+    onUserJoined: useCallback((participant: Participant) => {
       setParticipants(prev => {
         if (prev.some(p => p.id === participant.id)) return prev;
         return [...prev, participant];
       });
     }, []),
-    onUserLeft: useCallback((data) => {
+    onUserLeft: useCallback((data: { userId: string; username: string }) => {
       setParticipants(prev => prev.filter(p => p.id !== data.userId));
     }, []),
-    onVideoSync: useCallback((state) => {
+    onVideoSync: useCallback((state: VideoState) => {
       setVideoState(state);
     }, []),
-    onChatMessage: useCallback((message) => {
+    onChatMessage: useCallback((message: ChatMessage) => {
       setMessages(prev => [...prev, message]);
     }, []),
-    onParticipantsUpdate: useCallback((newParticipants) => {
+    onParticipantsUpdate: useCallback((newParticipants: Participant[]) => {
       setParticipants(newParticipants);
     }, []),
-    onToggleMic: useCallback((data) => {
+    onToggleMic: useCallback((data: { userId: string; isMuted: boolean }) => {
       setParticipants(prev =>
         prev.map(p => p.id === data.userId ? { ...p, isMuted: data.isMuted } : p)
       );
     }, []),
-    onToggleCamera: useCallback((data) => {
+    onToggleCamera: useCallback((data: { userId: string; isCameraOff: boolean }) => {
       setParticipants(prev =>
         prev.map(p => p.id === data.userId ? { ...p, isCameraOff: data.isCameraOff } : p)
       );

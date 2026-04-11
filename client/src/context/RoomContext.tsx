@@ -75,13 +75,13 @@ export function RoomProvider({
     setParticipants(newParticipants);
   }, []);
 
-  const handleToggleMic = useCallback((data: { userId: string; isMuted: boolean }) => {
+  const handleRemoteToggleMic = useCallback((data: { userId: string; isMuted: boolean }) => {
     setParticipants((prev) =>
       prev.map((p) => (p.id === data.userId ? { ...p, isMuted: data.isMuted } : p))
     );
   }, []);
 
-  const handleToggleCamera = useCallback((data: { userId: string; isCameraOff: boolean }) => {
+  const handleRemoteToggleCamera = useCallback((data: { userId: string; isCameraOff: boolean }) => {
     setParticipants((prev) =>
       prev.map((p) => (p.id === data.userId ? { ...p, isCameraOff: data.isCameraOff } : p))
     );
@@ -103,8 +103,8 @@ export function RoomProvider({
     onVideoSync: handleVideoSync,
     onChatMessage: handleChatMessage,
     onParticipantsUpdate: handleParticipantsUpdate,
-    onToggleMic: handleToggleMic,
-    onToggleCamera: handleToggleCamera,
+    onToggleMic: handleRemoteToggleMic,
+    onToggleCamera: handleRemoteToggleCamera,
   });
 
   const handleOffer = useCallback((to: string, offer: RTCSessionDescriptionInit) => {

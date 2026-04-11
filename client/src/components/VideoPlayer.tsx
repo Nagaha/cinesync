@@ -19,7 +19,7 @@ export default function VideoPlayer({ videoState, onVideoSync, isHost, onSetVide
   const [isMuted, setIsMuted] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
