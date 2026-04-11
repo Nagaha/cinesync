@@ -34,6 +34,7 @@ export default function Room() {
   const [localIsCameraOff, setLocalIsCameraOff] = useState(true);
 
   const {
+    socket,
     isConnected: socketConnected,
     currentUserId: socketUserId,
     emitVideoSync,
@@ -87,12 +88,7 @@ export default function Room() {
     onIceCandidate: useCallback(() => {}, []),
   });
 
-  const {
-    localStream,
-    streams,
-    toggleMic,
-    toggleCamera,
-  } = useWebRTC({
+  const { localStream, streams, toggleMic, toggleCamera, handleOffer, handleAnswer, handleIceCandidate } = useWebRTC({
     currentUserId,
     onOffer: emitOffer,
     onAnswer: emitAnswer,
@@ -115,6 +111,30 @@ export default function Room() {
       setIsHost(currentUserId === room.hostId);
     }
   }, [room, currentUserId]);
+
+  useEffect(() => {
+    if (!socket || !currentUserId) return;
+    socket.on('offer', (data: { from: string; to: string; offer: RTCSessionDescriptionInit }) => {
+      if (data.to === currentUserId) {
+        handleOffer(data.from, data.offer);
+      }
+    });
+    socket.on('answer', (data: { from: string; to: string; answer: RTCSessionDescriptionInit }) => {
+      if (data.to === currentUserId) {
+        handleAnswer(data.from, data.answer);
+      }
+    });
+    socket.on('ice-candidate', (data: { from: string; to: string; candidate: RTCIceCandidateInit }) => {
+      if (data.to === currentUserId) {
+        handleIceCandidate(data.from, data.candidate);
+      }
+    });
+    return () => {
+      socket.off('offer');
+      socket.off('answer');
+      socket.off('ice-candidate');
+    };
+  }, [socket, currentUserId, handleOffer, handleAnswer, handleIceCandidate]);
 
   const handleVideoSync = useCallback((state: VideoState) => {
     setVideoState(state);
