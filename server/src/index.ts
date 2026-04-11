@@ -17,7 +17,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -43,7 +43,7 @@ const upload = multer({
 });
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: '*',
   credentials: true,
 }));
 app.use(express.json());
