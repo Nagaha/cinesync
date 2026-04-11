@@ -1,14 +1,14 @@
 # Render.com Blueprint
-# Deploy both server and client services
+# Deploy server with client built-in
 
 services:
-  # Backend API Server
+  # Backend API Server (serves frontend too)
   - type: web
     name: cinesync-server
     env: node
     region: oregon
     rootDir: server
-    buildCommand: npm run build
+    buildCommand: cd .. && npm run build
     startCommand: cd server && npm start
     healthCheckPath: /health
     envVars:
@@ -16,31 +16,3 @@ services:
         value: production
       - key: PORT
         value: 3001
-
-  # Frontend Static Site
-  - type: web
-    name: cinesync-client
-    env: static
-    region: oregon
-    rootDir: client
-    buildCommand: npm run build
-    staticPublishPath: dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: public, max-age=0, must-revalidate
-    routes:
-      - path: /*
-        service: cinesync-client
-      - path: /api
-        service: cinesync-server
-      - path: /socket.io
-        service: cinesync-server
-      - path: /uploads
-        service: cinesync-server
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          name: cinesync-server
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL

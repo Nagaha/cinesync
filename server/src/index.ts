@@ -10,6 +10,7 @@ import { setupSockets } from './socket/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
 
 const app = express();
 const httpServer = createServer(app);
@@ -46,6 +47,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(express.static(clientDistPath));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get('/health', (req, res) => {
@@ -53,6 +55,10 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/room', roomRoutes);
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
+});
 
 app.post('/api/upload', upload.single('video'), (req, res) => {
   if (!req.file) {
