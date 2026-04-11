@@ -7,9 +7,9 @@ services:
     name: cinesync-server
     env: node
     region: oregon
-    rootDir: server
-    buildCommand: cd .. && npm run build
-    startCommand: cd server && npm start
+    rootDir: .
+    buildCommand: npm run build
+    startCommand: npm run start:server
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
